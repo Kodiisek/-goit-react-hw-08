@@ -16,7 +16,7 @@ export default function ContactsPage() {
 
   return (
     <>
-      <DocumentTitle>Your Contacts</DocumentTitle>
+      <DocumentTitle>Your Contacts:</DocumentTitle>
       <ContactsEditor />
       <div>{isLoading && 'Request in progress...'}</div>
       <ContactList />
