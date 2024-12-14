@@ -21,7 +21,7 @@ export default function HomePage() {
 
       <div style={styles.container}>
         <h1 style={styles.title}>
-          Contacts App welcome page{' '}
+          Contacts App{' '}
         </h1>
       </div>
     </>

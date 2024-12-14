@@ -1,10 +1,11 @@
+// App.jsx
 import { useEffect, lazy } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Route, Routes } from 'react-router-dom';
 import { Layout } from './Layout';
 import { PrivateRoute } from './PrivateRoute';
 import { RestrictedRoute } from './RestrictedRoute';
-import { refreshUser } from '../redux/auth/operations';
+import { refreshUser } from '../redux/auth/refreshUser';
 import { selectIsRefreshing } from '../redux/auth/selectors';
 
 const HomePage = lazy(() => import('../pages/HomePage/HomePage'));
@@ -17,7 +18,10 @@ export const App = () => {
   const isRefreshing = useSelector(selectIsRefreshing);
 
   useEffect(() => {
-    dispatch(refreshUser());
+    const token = localStorage.getItem('token');
+    if (token) {
+      dispatch(refreshUser()); // Odświeżenie danych użytkownika przy użyciu tokena
+    }
   }, [dispatch]);
 
   return isRefreshing ? (
@@ -29,19 +33,19 @@ export const App = () => {
         <Route
           path="/register"
           element={
-            <RestrictedRoute redirectTo="/contacts" component={<RegisterPage />} />
+            <RestrictedRoute redirectTo="/contacts" element={<RegisterPage />} />
           }
         />
         <Route
           path="/login"
           element={
-            <RestrictedRoute redirectTo="/contacts" component={<LoginPage />} />
+            <RestrictedRoute redirectTo="/contacts" element={<LoginPage />} />
           }
         />
         <Route
           path="/contacts"
           element={
-            <PrivateRoute redirectTo="/login" component={<ContactsPage />} />
+            <PrivateRoute redirectTo="/login" element={<ContactsPage />} />
           }
         />
       </Routes>

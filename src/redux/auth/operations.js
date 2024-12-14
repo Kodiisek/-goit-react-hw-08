@@ -19,14 +19,23 @@ const clearAuthHeader = () => {
  */
 export const register = createAsyncThunk(
   'auth/register',
-  async (credentials, thunkAPI) => {
+  async ({ name, email, password }, thunkAPI) => {
     try {
-      const res = await axios.post('/users/signup', credentials);
-      // After successful registration, add the token to the HTTP header
-      setAuthHeader(res.data.token);
-      return res.data;
+      const response = await axios.post('https://connections-api.goit.global/users/signup', { 
+        name, 
+        email, 
+        password 
+      });
+
+      if (response.status === 201) {
+        return response.data;
+      }
+
+      return thunkAPI.rejectWithValue('Rejestracja nieudana');
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.message);
+      const errorMessage = error.response ? error.response.data : error.message;
+      console.error('Rejestracja nieudana:', errorMessage);
+      return thunkAPI.rejectWithValue(errorMessage);
     }
   }
 );
@@ -37,17 +46,27 @@ export const register = createAsyncThunk(
  */
 export const logIn = createAsyncThunk(
   'auth/login',
-  async (credentials, thunkAPI) => {
+  async ({ email, password }, thunkAPI) => {
     try {
-      const res = await axios.post('/users/login', credentials);
-      // After successful login, add the token to the HTTP header
-      setAuthHeader(res.data.token);
-      return res.data;
+      const res = await axios.post('https://connections-api.goit.global/users/login', { 
+        email, 
+        password 
+      });
+
+      if (res.status === 200) {
+        setAuthHeader(res.data.token);
+        return res.data;
+      }
+
+      return thunkAPI.rejectWithValue('Błąd logowania');
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.message);
+      const errorMessage = error.response ? error.response.data : error.message;
+      console.error('Logowanie nieudane:', errorMessage);
+      return thunkAPI.rejectWithValue(errorMessage);
     }
   }
 );
+
 
 /*
  * POST @ /users/logout
@@ -55,8 +74,7 @@ export const logIn = createAsyncThunk(
  */
 export const logOut = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
   try {
-    await axios.post('/users/logout');
-    // After a successful logout, remove the token from the HTTP header
+    await axios.post('https://connections-api.goit.global/docs/users/logout');
     clearAuthHeader();
   } catch (error) {
     return thunkAPI.rejectWithValue(error.message);
@@ -70,22 +88,21 @@ export const logOut = createAsyncThunk('auth/logout', async (_, thunkAPI) => {
 export const refreshUser = createAsyncThunk(
   'auth/refresh',
   async (_, thunkAPI) => {
-    // Reading the token from the state via getState()
     const state = thunkAPI.getState();
     const persistedToken = state.auth.token;
 
     if (persistedToken === null) {
-      // If there is no token, exit without performing any request
-      return thunkAPI.rejectWithValue('Unable to fetch user');
+      return thunkAPI.rejectWithValue('Unable to fetch user: No token found');
     }
 
     try {
-      // If there is a token, add it to the HTTP header and perform the request
       setAuthHeader(persistedToken);
-      const res = await axios.get('/users/me');
+
+      const res = await axios.get('https://connections-api.goit.global/docs/users/current');
+      
       return res.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.message);
+      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
